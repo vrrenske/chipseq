@@ -5,6 +5,7 @@ I added some basic visualization using R (ggplot2 and plotly), which gives an ov
 but for now, there are some things which should be installed before running.
 
 ## Operating system
+
 I recommend running the whole pipeline in a linux environment, since some programs (for instance Macs2) don't run in Windows. I think OSx might work, but I didn't test this!
 
 If you want to run this pipeline on a Windows computer, install the [Ubuntu app](https://www.microsoft.com/en-us/p/ubuntu/9nblggh4msv6?activetab=pivot:overviewtab) on your computer. From there, you can acces your C drive through:
