@@ -48,15 +48,16 @@ rule relocate_trim:
 #map reads using bowtie2 & compress using samtools
 rule map_compress:
     input:
-        filelist = "list-of-files.txt",
+        filelist = rules.relocate_trim.output[1],
         reference = "D39V.FASTA"
     output:
         "map-log.txt"
     run:
         shell("bowtie2-build {input.reference} reference.index")
-        with open(input.filelist) as test:
-            test2 = test.read()
-        test2 = test2.split("\n")[:-1]
+        test2 = open(input.filelist, "r")
+        test2 = test2.readlines()
+        for n in range(0, len(test2)):
+            test2[n] = test2[n].partition("\n")[0]
         i = open("map-log.txt", "w+")
         samlist = []
         for n in range(0, len(test2), 2):
@@ -66,13 +67,14 @@ rule map_compress:
             shell("bowtie2 -x reference.index -1 " + test2[n] + " -2 " + test2[n+1] + " -S " + bn + ".sam -p 8")
         i.close()
         for n in samlist:
+            print(n)
             shell("samtools view -Sb " + n + " > " + n.partition(".")[0] + ".bam")
             os.remove(n)
 
 #macs2 peak calling: make the macs2 commands using python 3
 rule peaks_makecommands:
     input:
-        "map-log.txt"
+        rules.map_compress.output
     output:
         "macs2-commands.txt"
     run:
@@ -88,7 +90,7 @@ rule peaks_makecommands:
 #run with --use-conda
 rule peaks_run:
     input:
-        "macs2-commands.txt"
+        rules.peaks_makecommands.output
     output:
         "Output/done.txt"
     conda:
@@ -102,7 +104,7 @@ rule peaks_run:
 #R: bin the reads & save as .Rda
 rule sam_depth:
     input:
-        "map-log.txt"
+        rules.map_compress.output
     output:
         directory("Output/depth_files")
     run:
@@ -117,7 +119,7 @@ rule sam_depth:
 #R: use plotly to plot chip over sequence
 rule R_plots:
     input:
-        "Output/depth_files"
+        rules.sam_depth.output
     output:
         directory("Output/plots")
     shell:
